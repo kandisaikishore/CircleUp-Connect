@@ -31,3 +31,7 @@ jobs:
         run: npm test
       - name: Type-check and production build
         run: npm run build
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Run cross-browser and responsive tests
+        run: npm run test:e2e
