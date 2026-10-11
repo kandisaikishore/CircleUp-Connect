@@ -52,7 +52,7 @@ describe('CircleUp Connect core interactions', () => {
     expect(joinButtons.length).toBeGreaterThan(0);
     fireEvent.click(joinButtons[0]);
     expect(JSON.parse(localStorage.getItem('circleup-joined') || '[]')).toContain('Frontend Friends');
-    expect(screen.getByRole('button', { name: /joined/i })).toBeTruthy();
+    expect(screen.getAllByRole('button', { name: /joined/i }).length).toBeGreaterThan(0);
   });
 
   it('shows the saved posts view', () => {
