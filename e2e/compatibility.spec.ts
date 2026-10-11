@@ -16,7 +16,7 @@ test('home feed and AI assistant render without browser errors', async ({ page }
 });
 
 test('discover search works at the current viewport size', async ({ page }) => {
-  await page.getByRole('button', { name: 'Discover', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Discover', exact: true }).last().click();
   await expect(page.getByRole('heading', { name: 'Find your people' })).toBeVisible();
   await page.getByRole('textbox', { name: /search people and topics/i }).fill('Machine Learning');
   await expect(page.getByText('Meera Kapoor')).toBeVisible();
