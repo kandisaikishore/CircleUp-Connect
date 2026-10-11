@@ -25,6 +25,8 @@ jobs:
         run: |
           npm audit --json > npm-audit.json || true
           node -e "const a=require('./npm-audit.json'); console.log(JSON.stringify({metadata:a.metadata?.vulnerabilities, packages:Object.entries(a.vulnerabilities||{}).map(([name,v])=>({name,severity:v.severity,range:v.range,fixAvailable:v.fixAvailable}))},null,2))"
+      - name: Check API server syntax
+        run: node --check server/index.js
       - name: Run regression tests
         run: npm test
       - name: Type-check and production build
