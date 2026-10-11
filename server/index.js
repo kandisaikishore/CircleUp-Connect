@@ -29,6 +29,8 @@ app.use(cors({ origin: CLIENT_ORIGIN ? CLIENT_ORIGIN.split(',').map(x => x.trim(
 app.use(express.json({ limit: '32kb' }));
 app.use('/api', rateLimit({ windowMs: 60_000, limit: 120, standardHeaders: 'draft-7', legacyHeaders: false }));
 app.use('/api/auth', rateLimit({ windowMs: 15 * 60_000, limit: 20, standardHeaders: 'draft-7', legacyHeaders: false }));
+// LLM calls can incur provider costs; keep a stricter per-IP limit on AI requests.
+app.use('/api/ai', rateLimit({ windowMs: 60_000, limit: 10, standardHeaders: 'draft-7', legacyHeaders: false }));
 
 const asyncRoute = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 const requireDb = (req, res, next) => {
@@ -97,10 +99,17 @@ async function initializeDatabase() {
 app.get('/api/health', asyncRoute(async (_req, res) => {
   let database = 'not_configured';
   if (pool) { await pool.query('SELECT 1'); database = 'connected'; }
-  res.json({ status: 'ok', service: 'circleup-connect-api', database, aiConfigured: Boolean(process.env.OPENAI_API_KEY), timestamp: new Date().toISOString() });
+  const aiConfigured = Boolean(process.env.OPENAI_API_KEY);
+  const configured = database === 'connected' && aiConfigured;
+  res.status(database === 'connected' ? 200 : 503).json({
+    status: configured ? 'ok' : 'degraded',
+    service: 'circleup-connect-api', database, aiConfigured,
+    missingConfiguration: [!pool && 'DATABASE_URL', !aiConfigured && 'OPENAI_API_KEY'].filter(Boolean),
+    timestamp: new Date().toISOString()
+  });
 }));
 
-app.post('/api/auth/register', requireDb, asyncRoute(async (req, res) => {
+app.post('/api/auth/register', requireDb, (req, res, next) => JWT_SECRET ? next() : res.status(503).json({ error: 'Authentication is not configured. Set JWT_SECRET.' }), asyncRoute(async (req, res) => {
   const name = String(req.body.name || '').trim();
   const email = String(req.body.email || '').trim().toLowerCase();
   const password = String(req.body.password || '');
@@ -119,7 +128,7 @@ app.post('/api/auth/register', requireDb, asyncRoute(async (req, res) => {
   }
 }));
 
-app.post('/api/auth/login', requireDb, asyncRoute(async (req, res) => {
+app.post('/api/auth/login', requireDb, (req, res, next) => JWT_SECRET ? next() : res.status(503).json({ error: 'Authentication is not configured. Set JWT_SECRET.' }), asyncRoute(async (req, res) => {
   const email = String(req.body.email || '').trim().toLowerCase();
   const password = String(req.body.password || '');
   const { rows } = await pool.query('SELECT id,name,email,password_hash,interests FROM users WHERE email=$1', [email]);
