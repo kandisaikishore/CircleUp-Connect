@@ -58,8 +58,7 @@ describe('CircleUp API configuration smoke tests', () => {
     expect(response.status).toBe(503);
     expect(body.status).toBe('degraded');
     expect(body.missingConfiguration).toContain('DATABASE_URL');
-    expect(body.missingConfiguration).toContain('OPENAI_API_KEY');
-    expect(body.missingConfiguration).toContain('GEMINI_API_KEY');
+    expect(body.missingConfiguration).toContain('GEMINI_API_KEY or OPENAI_API_KEY');
   });
 
   it('returns a clear service-unavailable response when the database is absent', async () => {
