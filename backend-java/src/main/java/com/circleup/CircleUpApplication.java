@@ -88,11 +88,11 @@ public class CircleUpApplication implements WebMvcConfigurer {
 
   @GetMapping("/health")
   public ResponseEntity<?> health() {
-    boolean postgres=System.getenv("DATABASE_URL")!=null && !System.getenv("DATABASE_URL").isBlank();
+    boolean postgres=System.getenv("JDBC_DATABASE_URL")!=null && !System.getenv("JDBC_DATABASE_URL").isBlank();
     boolean ai=hasAi();
     try { db.queryForObject("SELECT 1",Integer.class); }
     catch(Exception e) { return ResponseEntity.status(503).body(map("status","degraded","service","circleup-connect-api-java","database","unavailable","aiConfigured",ai)); }
-    return ResponseEntity.ok(map("status",postgres?"ok":"degraded","service","circleup-connect-api-java","database",postgres?"connected":"ephemeral_h2","aiConfigured",ai,"missingConfiguration",postgres?List.of():List.of("DATABASE_URL"),"timestamp",Instant.now().toString()));
+    return ResponseEntity.ok(map("status",postgres?"ok":"degraded","service","circleup-connect-api-java","database",postgres?"connected":"ephemeral_h2","aiConfigured",ai,"missingConfiguration",postgres?List.of():List.of("JDBC_DATABASE_URL"),"timestamp",Instant.now().toString()));
   }
 
   @PostMapping("/auth/register")
