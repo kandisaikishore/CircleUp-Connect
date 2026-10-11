@@ -1,4 +1,5 @@
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { FormEvent } from 'react';
 import { Bot, Send, Sparkles, X, Minimize2, RotateCcw } from 'lucide-react';
 import './ai.css';
 
