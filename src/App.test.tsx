@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import App from './App';
 
 beforeEach(() => {
@@ -39,7 +39,7 @@ describe('CircleUp Connect core interactions', () => {
 
   it('filters discover people using the search field', () => {
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /^discover$/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: /^discover$/i })[0]);
     fireEvent.change(screen.getByPlaceholderText(/search people, topics/i), { target: { value: 'Machine Learning' } });
     expect(screen.getByText('Meera Kapoor')).toBeTruthy();
     expect(screen.queryByText('Vikram Patel')).toBeNull();
@@ -47,7 +47,7 @@ describe('CircleUp Connect core interactions', () => {
 
   it('joins a community and saves the selection locally', () => {
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /^communities$/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: /^communities$/i })[0]);
     const joinButtons = screen.getAllByRole('button', { name: /join circle/i });
     expect(joinButtons.length).toBeGreaterThan(0);
     fireEvent.click(joinButtons[0]);
