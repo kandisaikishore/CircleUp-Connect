@@ -104,7 +104,7 @@ app.get('/api/health', asyncRoute(async (_req, res) => {
   res.status(database === 'connected' ? 200 : 503).json({
     status: configured ? 'ok' : 'degraded',
     service: 'circleup-connect-api', database, aiConfigured,
-    missingConfiguration: [!pool && 'DATABASE_URL', !aiConfigured && 'OPENAI_API_KEY'].filter(Boolean),
+    missingConfiguration: [!pool && 'DATABASE_URL', !aiConfigured && 'GEMINI_API_KEY or OPENAI_API_KEY'].filter(Boolean),
     timestamp: new Date().toISOString()
   });
 }));
