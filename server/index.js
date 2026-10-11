@@ -99,7 +99,7 @@ async function initializeDatabase() {
 app.get('/api/health', asyncRoute(async (_req, res) => {
   let database = 'not_configured';
   if (pool) { await pool.query('SELECT 1'); database = 'connected'; }
-  const aiConfigured = Boolean(process.env.OPENAI_API_KEY);
+  const aiConfigured = Boolean(process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY);
   const configured = database === 'connected' && aiConfigured;
   res.status(database === 'connected' ? 200 : 503).json({
     status: configured ? 'ok' : 'degraded',
@@ -220,18 +220,39 @@ app.post('/api/messages/:userId', requireAuth, requireDb, asyncRoute(async (req,
 }));
 
 app.post('/api/ai/chat', asyncRoute(async (req, res) => {
-  if (!process.env.OPENAI_API_KEY) return res.status(503).json({ error: 'AI is not configured yet. Add OPENAI_API_KEY to the Render API service environment.' });
+  if (!process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) return res.status(503).json({ error: 'AI is not configured yet. Add GEMINI_API_KEY to the Render API service environment.' });
   const message = String(req.body.message || '').trim();
   const history = Array.isArray(req.body.history) ? req.body.history.slice(-8) : [];
   if (!message || message.length > 4000) return res.status(400).json({ error: 'Message must contain 1–4000 characters.' });
-  const messages = [
-    { role: 'system', content: 'You are CircleUp AI, a helpful, safe community assistant. Help users discover communities, improve posts, learn software development, brainstorm projects, and connect respectfully. Never claim to perform actions in CircleUp. Be concise and useful.' },
-    ...history.filter(m => ['user','assistant'].includes(m?.role) && typeof m.content === 'string').map(m => ({ role: m.role, content: m.content.slice(0, 4000) })),
-    { role: 'user', content: message }
-  ];
+  const systemInstruction = 'You are CircleUp AI, a helpful, safe community assistant. Help users discover communities, improve posts, learn software development, brainstorm projects, and connect respectfully. Never claim to perform actions in CircleUp. Be concise and useful.';
+  const historyMessages = history.filter(m => ['user','assistant'].includes(m?.role) && typeof m.content === 'string')
+    .map(m => ({ role: m.role, content: m.content.slice(0, 4000) }));
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 25_000);
   try {
+    if (process.env.GEMINI_API_KEY) {
+      const contents = [
+        { role: 'user', parts: [{ text: systemInstruction }] },
+        { role: 'model', parts: [{ text: 'Understood. I am CircleUp AI and will follow those instructions.' }] },
+        ...historyMessages.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
+        { role: 'user', parts: [{ text: message }] }
+      ];
+      const model = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+        method: 'POST', signal: controller.signal,
+        headers: { 'Content-Type': 'application/json', 'X-goog-api-key': process.env.GEMINI_API_KEY },
+        body: JSON.stringify({ contents, generationConfig: { temperature: 0.7, maxOutputTokens: 700 } })
+      });
+      const payload = await response.json();
+      if (!response.ok) return res.status(response.status === 429 ? 429 : 502).json({ error: payload.error?.message || 'Gemini provider request failed.' });
+      const answer = payload.candidates?.[0]?.content?.parts?.map(part => part.text || '').join('').trim();
+      return res.json({ answer: answer || 'I could not generate a response just now.', model });
+    }
+    const messages = [
+      { role: 'system', content: systemInstruction },
+      ...historyMessages.map(m => ({ role: m.role, content: m.content })),
+      { role: 'user', content: message }
+    ];
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST', signal: controller.signal,
       headers: { Authorization: 'Bearer ' + process.env.OPENAI_API_KEY, 'Content-Type': 'application/json' },
