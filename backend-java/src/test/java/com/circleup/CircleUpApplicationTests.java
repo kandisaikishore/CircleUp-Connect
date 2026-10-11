@@ -10,7 +10,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-  "spring.datasource.url=jdbc:h2:mem:circleup-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
+  "spring.datasource.url=jdbc:h2:mem:circleup-test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1",
   "JWT_SECRET=ci-test-secret-with-enough-entropy"
 })
 class CircleUpApplicationTests {
