@@ -59,6 +59,7 @@ describe('CircleUp API configuration smoke tests', () => {
     expect(body.status).toBe('degraded');
     expect(body.missingConfiguration).toContain('DATABASE_URL');
     expect(body.missingConfiguration).toContain('OPENAI_API_KEY');
+    expect(body.missingConfiguration).toContain('GEMINI_API_KEY');
   });
 
   it('returns a clear service-unavailable response when the database is absent', async () => {
@@ -74,7 +75,7 @@ describe('CircleUp API configuration smoke tests', () => {
       body: JSON.stringify({ message: 'Hello CircleUp AI' })
     });
     expect(response.status).toBe(503);
-    expect((await response.json()).error).toMatch(/OPENAI_API_KEY/);
+    expect((await response.json()).error).toMatch(/GEMINI_API_KEY/);
   });
 
   it('rejects unknown routes with JSON 404 responses', async () => {
