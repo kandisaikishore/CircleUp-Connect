@@ -1,5 +1,18 @@
 # CircleUp Connect
 
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?logo=github)](https://github.com/saikishore2410/CircleUp-Connect) [![Issues](https://img.shields.io/github/issues/saikishore2410/CircleUp-Connect)](https://github.com/saikishore2410/CircleUp-Connect/issues) [![Last Commit](https://img.shields.io/github/last-commit/saikishore2410/CircleUp-Connect)](https://github.com/saikishore2410/CircleUp-Connect/commits/main)
+
+> CircleUp Connect explores feed, profiles, interest matching, and community interactions through a responsive React interface.
+
+## At a glance
+
+- **Purpose:** Use the feature and scope sections below to understand the problem this project addresses.
+- **Getting started:** Follow the repository-specific setup instructions and verify commands against the current source and package scripts.
+- **Configuration:** Keep API keys, database credentials, tokens, and private user data out of commits; configure secrets locally.
+- **Quality checks:** Run the available build, test, and lint commands before submitting changes.
+
+
+
 **A social networking UI starter for discovering people and communities around shared interests.**
 
 CircleUp Connect explores feed, profiles, interest matching, and community interactions through a responsive React interface.
