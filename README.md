@@ -4,6 +4,10 @@
 
 > CircleUp Connect explores feed, profiles, interest matching, and community interactions through a responsive React interface.
 
+## Live Demo
+
+**Deployment URL:** Not verified yet. This section will contain the public application URL once the deployed service is confirmed.
+
 ## At a glance
 
 - **Purpose:** Use the feature and scope sections below to understand the problem this project addresses.
@@ -11,11 +15,7 @@
 - **Configuration:** Keep API keys, database credentials, tokens, and private user data out of commits; configure secrets locally.
 - **Quality checks:** Run the available build, test, and lint commands before submitting changes.
 
-
-
 **A social networking UI starter for discovering people and communities around shared interests.**
-
-CircleUp Connect explores feed, profiles, interest matching, and community interactions through a responsive React interface.
 
 ## Features in the current demo
 
