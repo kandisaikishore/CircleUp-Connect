@@ -1,42 +1,53 @@
 # CircleUp Connect
 
-A React + TypeScript social networking starter for discovering like-minded people and building communities around shared interests.
+**A social networking UI starter for discovering people and communities around shared interests.**
 
-## Stack
-- React + TypeScript
+CircleUp Connect explores feed, profiles, interest matching, and community interactions through a responsive React interface.
+
+## Features in the current demo
+
+- Feed with sample posts, likes, comments, bookmarks, and copyable permalinks
+- Create posts and persist demo state in browser storage
+- Discover people using shared-interest tags and match scores
+- Join and leave interest-based communities
+- Messaging interface with local demo conversation history
+- Notifications, saved posts, profiles, events, and privacy-settings screens
+- AI community-finder UI with a transparent demo interaction (not connected to an LLM)
+
+## Tech stack
+
+- React and TypeScript
 - Vite
-- Lucide React icons
-- Responsive custom CSS (no UI framework dependency)
-- Browser `localStorage` for demo posts, follows, joined communities, comments, and conversation history
+- Lucide icons
+- Custom responsive CSS
+- Browser `localStorage`
 
-## Features in this demo
-- Responsive feed with sample posts, likes, comments, bookmarks, and copyable post permalinks
-- Create posts and persist them in local storage
-- Discover people with shared-interest tags and match scores
-- Follow/connect UI and interest-based communities with join/leave state
-- Messaging interface with local demo conversation
-- Notifications, saved posts, profile, events, and privacy settings screens
-- AI community finder UI with a transparent demo interaction (not connected to an LLM)
-- Desktop sidebar, mobile drawer, and mobile bottom navigation
-
-## Design handoff
-
-See [`DESIGN_SPEC.md`](./DESIGN_SPEC.md) for the design tokens, screen inventory, reusable components, responsive behavior, and prototype interactions intended for Figma handoff. No Figma file has been created or synced yet because the Figma integration is not connected.
-
-## Run locally
-Requires Node.js 20+.
+## Quick start
 
 ```bash
+git clone https://github.com/saikishore2410/CircleUp-Connect.git
+cd CircleUp-Connect
 npm install
 npm run dev
 ```
 
-## Production build
+## Build and test
 
 ```bash
+npm test
 npm run build
-npm run preview
 ```
 
-## Important implementation notes
-This is a front-end demo. Authentication, multi-user real-time messaging, remote image upload, durable server storage, moderation workflows, and LLM calls are not configured. `localStorage` data is local to the current browser and is not shared across users/devices. Before production use, add a backend such as Supabase, implement row-level security, validate all inputs server-side, and connect an AI provider through a server-side function without exposing API keys in the browser.
+See `package.json` for the exact scripts configured in this branch.
+
+## Architecture and limitations
+
+Most interactions are front-end demonstrations backed by local browser state. A production social product would need secure authentication, server-side persistence, authorization, moderation/reporting, spam prevention, privacy controls, rate limiting, and tested messaging delivery. The AI finder UI is not an actual LLM integration in the current demo.
+
+## Contributing
+
+Propose focused changes with clear acceptance criteria and tests.
+
+## License
+
+No license is specified. Add a `LICENSE` file before granting reuse rights.
