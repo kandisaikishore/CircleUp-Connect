@@ -45,7 +45,7 @@ jobs:
           if node -e "process.exit(require('./package.json').scripts?.lint ? 0 : 1)"; then npm run lint; else echo "No lint script declared."; fi
           if node -e "process.exit(require('./package.json').scripts?.test ? 0 : 1)"; then npm test; else echo "No test script declared; tests were not run."; fi
           if node -e "process.exit(require('./package.json').scripts?.build ? 0 : 1)"; then npm run build; else echo "No build script declared."; fi
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         if: steps.detect.outputs.python == 'true'
         with:
           python-version: '3.12'
