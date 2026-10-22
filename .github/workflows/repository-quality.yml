@@ -25,7 +25,7 @@ jobs:
           [[ ! -f package.json ]] || echo "node=true" >> "$GITHUB_OUTPUT"
           [[ ! -f pom.xml && ! -f build.gradle && ! -f build.gradle.kts && ! -f gradlew ]] || echo "java=true" >> "$GITHUB_OUTPUT"
           [[ ! -f requirements.txt && ! -f pyproject.toml && ! -f setup.py ]] || echo "python=true" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: steps.detect.outputs.node == 'true'
         with:
           node-version: '22'
