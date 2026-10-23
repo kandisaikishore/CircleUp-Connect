@@ -17,7 +17,7 @@ export default function AICompanion() {
   ]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, [messages, open, loading]);
+  useEffect(() => { bottomRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'end' }); }, [messages, open, loading]);
 
   async function sendMessage(event?: FormEvent, suggested?: string) {
     event?.preventDefault();
