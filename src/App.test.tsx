@@ -7,6 +7,7 @@ const apiMocks = vi.hoisted(() => ({
   createPost: vi.fn(),
   toggleLike: vi.fn(),
   addComment: vi.fn(),
+  listComments: vi.fn(),
   listCommunities: vi.fn(),
   toggleMembership: vi.fn()
 }));
@@ -21,7 +22,7 @@ vi.mock('./lib/api', () => ({
     create: apiMocks.createPost,
     toggleLike: apiMocks.toggleLike,
     addComment: apiMocks.addComment,
-    listComments: vi.fn()
+    listComments: apiMocks.listComments
   },
   communitiesApi: {
     list: apiMocks.listCommunities,
