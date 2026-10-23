@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Bot, Send, Sparkles, X, Minimize2, RotateCcw } from 'lucide-react';
 import './ai.css';
-import { apiRequest } from './lib/api';
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string };
+const API_URL = (import.meta.env.VITE_API_URL || 'https://circleup-connect-api.onrender.com').replace(/\/$/, '');
 const starters = ['Help me write a post', 'Suggest communities for AI learners', 'Explain a React concept'];
 
 export default function AICompanion() {
@@ -31,11 +31,14 @@ export default function AICompanion() {
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 30_000);
     try {
-      const payload = await apiRequest<{ answer?: string }>('/ai/chat', {
+      const response = await fetch(API_URL + '/api/ai/chat', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text, history: next.slice(-8, -1) }),
         signal: controller.signal
       });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || 'AI could not respond. Please try again.');
       setMessages(current => [...current, { role: 'assistant', content: String(payload.answer || 'I could not generate a response.') }]);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not reach CircleUp AI.');
