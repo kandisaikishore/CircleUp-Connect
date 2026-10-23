@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ApiError, communitiesApi, postsApi, type ApiPost } from './lib/api';
+import { ApiError, authApi, communitiesApi, postsApi, type ApiPost } from './lib/api';
 import { Home, Compass, Users, MessageCircle, Bell, Bookmark, CalendarDays, Settings, Search, Plus, Heart, MessageSquare, Share2, MoreHorizontal, Sparkles, Send, X, Check, UserPlus, Hash, Menu, ShieldCheck, ArrowUpRight, Star, BellDot, ImagePlus, MapPinned, SlidersHorizontal, ArrowRight, BookmarkPlus, CirclePlay, BriefcaseBusiness, BadgeCheck } from 'lucide-react';
 
 type Post={id:number;name:string;handle:string;avatar:string;color:string;time:string;text:string;tags:string[];likes:number;comments:number;liked:boolean;saved:boolean};
@@ -16,6 +16,13 @@ function App(){
  const [active,setActive]=useState('Home');
  const [posts,setPosts]=useState<Post[]>([]);
  const [feedLoading,setFeedLoading]=useState(true);
+ const [sessionVersion,setSessionVersion]=useState(0);
+ const [authOpen,setAuthOpen]=useState(false);
+ const [authMode,setAuthMode]=useState<'login'|'register'>('login');
+ const [authName,setAuthName]=useState('');
+ const [authEmail,setAuthEmail]=useState('');
+ const [authPassword,setAuthPassword]=useState('');
+ const [signedInName,setSignedInName]=useState(()=>localStorage.getItem('circleup-user-name')||'');
  const [people,setPeople]=useState<Person[]>(()=>{try{return JSON.parse(localStorage.getItem('circleup-people')||'null')||seedPeople}catch{return seedPeople}});
  const [joined,setJoined]=useState<string[]>(()=>{try{return JSON.parse(localStorage.getItem('circleup-joined')||'null')||['AI Builders','Creative Corner']}catch{return ['AI Builders','Creative Corner']}});
  const [communityIds,setCommunityIds]=useState<Record<string,number>>({});
@@ -29,10 +36,12 @@ function App(){
  const [comments,setComments]=useState<Record<number,string[]>>({1:['Love this. Shipping is the real flex.'],3:['This is exactly the kind of challenge I need!']});
  const [commentDrafts,setCommentDrafts]=useState<Record<number,string>>({});
  const mapApiPost=(p:ApiPost):Post=>({id:Number(p.id),name:p.name||'CircleUp member',handle:(p.name||'member').toLowerCase().replace(/[^a-z0-9]+/g,'').slice(0,24)||'member',avatar:(p.name||'CU').split(/\s+/).map(part=>part[0]).join('').slice(0,2).toUpperCase(),color:'indigo',time:new Date(p.created_at).toLocaleString(),text:p.body,tags:[],likes:p.likes||0,comments:p.comments||0,liked:Boolean((p as ApiPost & {liked_by_me?:boolean}).liked_by_me ?? posts.find(existing=>existing.id===Number(p.id))?.liked),saved:Boolean(posts.find(existing=>existing.id===Number(p.id))?.saved)});
- useEffect(()=>{let cancelled=false;postsApi.list().then(remotePosts=>{if(!cancelled){setPosts(remotePosts.map(mapApiPost));setFeedLoading(false);}}).catch(error=>{if(!cancelled){setPosts([]);setFeedLoading(false);notify(error instanceof ApiError?error.message:'Unable to load community posts. Please try again.');}});return()=>{cancelled=true;}},[]);
+ useEffect(()=>{let cancelled=false;postsApi.list().then(remotePosts=>{if(!cancelled){setPosts(remotePosts.map(mapApiPost));setFeedLoading(false);}}).catch(error=>{if(!cancelled){setPosts([]);setFeedLoading(false);notify(error instanceof ApiError?error.message:'Unable to load community posts. Please try again.');}});return()=>{cancelled=true;}},[sessionVersion]);
  useEffect(()=>{localStorage.setItem('circleup-people',JSON.stringify(people))},[people]);
  useEffect(()=>{localStorage.setItem('circleup-joined',JSON.stringify(joined))},[joined]);
- useEffect(()=>{let cancelled=false;communitiesApi.list().then(items=>{if(!cancelled){setCommunityIds(Object.fromEntries(items.map(item=>[item.name,Number(item.id)])));setJoined(items.filter(item=>(item as typeof item & {joined_by_me?:boolean}).joined_by_me).map(item=>item.name));}}).catch(()=>{});return()=>{cancelled=true;}},[]);
+ useEffect(()=>{let cancelled=false;communitiesApi.list().then(items=>{if(!cancelled){setCommunityIds(Object.fromEntries(items.map(item=>[item.name,Number(item.id)])));setJoined(items.filter(item=>(item as typeof item & {joined_by_me?:boolean}).joined_by_me).map(item=>item.name));}}).catch(()=>{});return()=>{cancelled=true;}},[sessionVersion]);
+ const submitAuth=async()=>{try{const result=authMode==='register'?await authApi.register(authName.trim(),authEmail.trim(),authPassword):await authApi.login(authEmail.trim(),authPassword);localStorage.setItem('circleup-token',result.token);localStorage.setItem('circleup-user-name',result.user.name);setSignedInName(result.user.name);setAuthOpen(false);setAuthPassword('');setSessionVersion(version=>version+1);notify(authMode==='register'?'Account created successfully.':'Signed in successfully.');}catch(error){notify(error instanceof ApiError?error.message:'Authentication failed. Please try again.');}};
+ const signOut=()=>{localStorage.removeItem('circleup-token');localStorage.removeItem('circleup-user-name');setSignedInName('');setSessionVersion(version=>version+1);notify('Signed out.');};
  const toggleCommunity=async(name:string)=>{const id=communityIds[name];if(!id){notify('This community is not available from the API yet.');return;}try{const result=await communitiesApi.toggleMembership(id);setJoined(items=>result.joined?[...items.filter(item=>item!==name),name]:items.filter(item=>item!==name));notify(result.joined?'Joined '+name:'Left '+name);}catch(error){notify(error instanceof ApiError?error.message:'Could not update community membership. Please try again.');}};
  const notify=(s:string)=>{setToast(s);window.setTimeout(()=>setToast(''),2300)};
  const filteredPeople=useMemo(()=>people.filter(p=>(p.name+' '+p.role+' '+p.interests.join(' ')).toLowerCase().includes(search.toLowerCase())),[people,search]);
@@ -87,6 +96,7 @@ function App(){
         <input aria-label="Search people, interests, or circles" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search people, topics..." />
        </div>
        <button className="icon-btn" aria-label="Create a post" onClick={()=>setShowComposer(true)}><Plus size={17}/></button>
+       <button className="secondary-btn" onClick={()=>signedInName?signOut():setAuthOpen(true)}>{signedInName?'Sign out':'Sign in'}</button>
        <button className="icon-btn" aria-label="Open notifications" onClick={()=>setActive('Notifications')}><BellDot size={17}/></button>
       </div>
      </header>
@@ -110,7 +120,7 @@ function App(){
       {active==='Settings'&&<div className="generic-page settings-page"><div className="settings-card"><div className="settings-heading"><ShieldCheck size={22}/><div><h3>Privacy & safety</h3><p>You’re in control of what you share.</p></div></div><div className="settings-list"><button className="settings-row"><span>Profile visibility</span><ArrowRight size={16}/></button><button className="settings-row"><span>Blocked accounts</span><ArrowRight size={16}/></button><button className="settings-row"><span>Notifications</span><ArrowRight size={16}/></button></div></div></div>}
      </div>
     </main>
-    {showComposer&&<div className="modal-backdrop" onClick={()=>setShowComposer(false)}><div className="composer-modal" onClick={e=>e.stopPropagation()}><div className="modal-heading"><div><h3>Create a post</h3><p>Share what you’re thinking and building.</p></div><button className="icon-btn" aria-label="Close composer" onClick={()=>setShowComposer(false)}><X size={17}/></button></div><textarea aria-label="Write a new post" value={draft} onChange={e=>setDraft(e.target.value)} placeholder="What’s on your mind?" /><div className="composer-actions"><button className="ghost-btn" onClick={()=>setShowComposer(false)}>Cancel</button><button className="primary-btn" onClick={createPost}>Share post</button></div></div></div>}
+    {authOpen&&<div className="modal-backdrop" onClick={()=>setAuthOpen(false)}><div className="composer-modal" onClick={e=>e.stopPropagation()}><div className="modal-heading"><div><h3>{authMode==='register'?'Create your account':'Welcome back'}</h3><p>Sign in to publish posts, like, comment, and join communities.</p></div><button className="icon-btn" aria-label="Close authentication" onClick={()=>setAuthOpen(false)}><X size={17}/></button></div><div className="composer-actions"><button className="ghost-btn" onClick={()=>setAuthMode('login')}>Sign in</button><button className="ghost-btn" onClick={()=>setAuthMode('register')}>Register</button></div>{authMode==='register'&&<input aria-label="Your name" value={authName} onChange={e=>setAuthName(e.target.value)} placeholder="Your name" autoComplete="name"/>}<input aria-label="Email address" type="email" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} placeholder="Email address" autoComplete="email"/><input aria-label="Password" type="password" value={authPassword} onChange={e=>setAuthPassword(e.target.value)} placeholder="Password (10+ characters)" autoComplete={authMode==='register'?'new-password':'current-password'}/><div className="composer-actions"><button className="ghost-btn" onClick={()=>setAuthOpen(false)}>Cancel</button><button className="primary-btn" onClick={submitAuth}>{authMode==='register'?'Create account':'Sign in'}</button></div></div></div>}{showComposer&&<div className="modal-backdrop" onClick={()=>setShowComposer(false)}><div className="composer-modal" onClick={e=>e.stopPropagation()}><div className="modal-heading"><div><h3>Create a post</h3><p>Share what you’re thinking and building.</p></div><button className="icon-btn" aria-label="Close composer" onClick={()=>setShowComposer(false)}><X size={17}/></button></div><textarea aria-label="Write a new post" value={draft} onChange={e=>setDraft(e.target.value)} placeholder="What’s on your mind?" /><div className="composer-actions"><button className="ghost-btn" onClick={()=>setShowComposer(false)}>Cancel</button><button className="primary-btn" onClick={createPost}>Share post</button></div></div></div>}
     {toast&&<div className="toast"><Check size={17}/>{toast}</div>}
     <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
       {nav.map(n=><button type="button" aria-label={n.label} className={active===n.label?'active':''} key={n.label} onClick={()=>{setActive(n.label);setMobileNav(false)}}>{n.label === 'Home' ? <Home size={18}/> : n.label === 'Discover' ? <Compass size={18}/> : n.label === 'Communities' ? <Users size={18}/> : n.label === 'Messages' ? <MessageCircle size={18}/> : <Bell size={18}/>}</button>)}
