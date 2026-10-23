@@ -60,7 +60,7 @@ describe('CircleUp Connect core interactions', () => {
   it('shows the saved posts view', () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: /^saved$/i }));
-    expect(screen.getByRole('heading', { name: /your little collection/i })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: /your little collection/i, level: 1 })).toBeTruthy();
     expect(screen.getByText(/weekend challenge/i)).toBeTruthy();
   });
 });
