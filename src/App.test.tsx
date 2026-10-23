@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 const apiMocks = vi.hoisted(() => ({
   listPosts: vi.fn(),
@@ -101,7 +101,8 @@ describe('CircleUp Connect core interactions', () => {
   it('saves an API post to the local saved collection', async () => {
     render(<App />);
     await screen.findByText(/finally shipped my first ai side project/i);
-    fireEvent.click(screen.getByRole('button', { name: 'Save post' }));
+    const postCard = screen.getByText(/finally shipped my first ai side project/i).closest('article');
+    fireEvent.click(within(postCard!).getByRole('button', { name: 'Save post' }));
     fireEvent.click(screen.getByRole('button', { name: /^saved$/i }));
     expect(screen.getByText(/your little collection/i)).toBeTruthy();
     expect(screen.getByText(/finally shipped my first ai side project/i)).toBeTruthy();
