@@ -92,6 +92,7 @@ describe('CircleUp Connect core interactions', () => {
 
   it('joins a community through the API', async () => {
     render(<App />);
+    fireEvent.click(screen.getAllByRole('button', { name: /^communities$/i })[0]);
     await screen.findByText('Build In Public');
     fireEvent.click(screen.getAllByRole('button', { name: /join circle/i })[0]);
     await waitFor(() => expect(apiMocks.toggleMembership).toHaveBeenCalled());
