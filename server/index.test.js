@@ -77,6 +77,26 @@ describe('CircleUp API configuration smoke tests', () => {
     expect((await response.json()).error).toMatch(/GEMINI_API_KEY/);
   });
 
+  it('returns HTTP 400 for malformed JSON instead of an internal server error', async () => {
+    const response = await fetch(baseUrl + '/api/ai/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{'
+    });
+    expect(response.status).toBe(400);
+    expect((await response.json()).error).toBe('Malformed JSON request body.');
+  });
+
+  it('returns HTTP 413 when the JSON body exceeds the configured limit', async () => {
+    const response = await fetch(baseUrl + '/api/ai/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'x'.repeat(33 * 1024) })
+    });
+    expect(response.status).toBe(413);
+    expect((await response.json()).error).toMatch(/32 KB limit/);
+  });
+
   it('rejects unknown routes with JSON 404 responses', async () => {
     const response = await fetch(baseUrl + '/api/this-route-does-not-exist');
     expect(response.status).toBe(404);

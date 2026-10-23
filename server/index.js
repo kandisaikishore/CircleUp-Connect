@@ -277,6 +277,9 @@ app.use((req, res) => res.status(404).json({ error: 'Route not found.' }));
 app.use((err, _req, res, _next) => {
   console.error('API error:', err.message);
   if (err.name === 'AbortError') return res.status(504).json({ error: 'AI request timed out. Please retry.' });
+  // Map expected request-parsing failures to client errors instead of masking them as 500s.
+  if (err.type === 'entity.parse.failed') return res.status(400).json({ error: 'Malformed JSON request body.' });
+  if (err.type === 'entity.too.large') return res.status(413).json({ error: 'Request body exceeds the 32 KB limit.' });
   res.status(500).json({ error: 'Unexpected server error.' });
 });
 
