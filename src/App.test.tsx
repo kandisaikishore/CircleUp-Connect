@@ -45,6 +45,7 @@ beforeEach(() => {
   apiMocks.createPost.mockImplementation(async (body: string) => ({ id: 99, name: 'Kandi Sai Kishore', body, created_at: '2026-10-23T08:30:00.000Z' }));
   apiMocks.toggleLike.mockResolvedValue({ liked: true });
   apiMocks.addComment.mockImplementation(async (_id: number, body: string) => ({ id: 1, body, created_at: '2026-10-23T08:30:00.000Z' }));
+  apiMocks.listComments.mockResolvedValue([]);
   apiMocks.listCommunities.mockResolvedValue([
     { id: 1, name: 'AI Builders', description: 'AI', members: 10, joined_by_me: true },
     { id: 2, name: 'Frontend Friends', description: 'Frontend', members: 8, joined_by_me: false },
