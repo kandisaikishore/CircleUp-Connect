@@ -12,9 +12,10 @@ describe('apiRequest', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     await expect(apiRequest<{ posts: unknown[] }>('/posts')).resolves.toEqual({ posts: [] });
-    expect(fetchMock).toHaveBeenCalledWith('/api/posts', expect.objectContaining({
-      headers: expect.objectContaining({ Accept: 'application/json' })
-    }));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const requestHeaders = new Headers(fetchMock.mock.calls[0][1]?.headers);
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/posts');
+    expect(requestHeaders.get('Accept')).toBe('application/json');
   });
 
   it.each([
@@ -47,14 +48,14 @@ describe('apiRequest', () => {
       method: 'POST', body: JSON.stringify({ body: 'hello' }),
       headers: { Authorization: 'Bearer test-token' }
     });
-    expect(fetchMock).toHaveBeenCalledWith('/api/posts', expect.objectContaining({
-      method: 'POST',
-      headers: expect.objectContaining({
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer test-token'
-      })
-    }));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, request] = fetchMock.mock.calls[0];
+    const requestHeaders = new Headers(request?.headers);
+    expect(url).toBe('/api/posts');
+    expect(request?.method).toBe('POST');
+    expect(requestHeaders.get('Accept')).toBe('application/json');
+    expect(requestHeaders.get('Content-Type')).toBe('application/json');
+    expect(requestHeaders.get('Authorization')).toBe('Bearer test-token');
   });
 
   it('exports a typed ApiError class', () => {
