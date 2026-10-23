@@ -97,11 +97,12 @@ describe('CircleUp Connect core interactions', () => {
     await waitFor(() => expect(apiMocks.toggleMembership).toHaveBeenCalled());
   });
 
-  it('shows saved posts using the local saved preference', async () => {
+  it('saves an API post to the local saved collection', async () => {
     render(<App />);
-    await screen.findByText(/weekend challenge/i);
+    await screen.findByText(/finally shipped my first ai side project/i);
+    fireEvent.click(screen.getByRole('button', { name: 'Save post' }));
     fireEvent.click(screen.getByRole('button', { name: /^saved$/i }));
     expect(screen.getByText(/your little collection/i)).toBeTruthy();
-    expect(screen.getByText(/weekend challenge/i)).toBeTruthy();
+    expect(screen.getByText(/finally shipped my first ai side project/i)).toBeTruthy();
   });
 });
