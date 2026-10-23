@@ -37,6 +37,11 @@ const requireDb = (req, res, next) => {
   if (!pool) return res.status(503).json({ error: 'Database is not configured. Set DATABASE_URL.' });
   next();
 };
+const optionalAuth = (req, res, next) => {
+  const token = req.headers.authorization?.replace(/^Bearer\\s+/i, '');
+  if (token && JWT_SECRET) { try { req.user = jwt.verify(token, JWT_SECRET); } catch { /* Public reads remain available for expired sessions. */ } }
+  next();
+};
 const requireAuth = (req, res, next) => {
   if (!JWT_SECRET) return res.status(503).json({ error: 'Authentication is not configured. Set JWT_SECRET.' });
   const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
@@ -144,14 +149,15 @@ app.get('/api/auth/me', requireAuth, requireDb, asyncRoute(async (req, res) => {
   res.json({ user: rows[0] });
 }));
 
-app.get('/api/posts', requireDb, asyncRoute(async (req, res) => {
+app.get('/api/posts', optionalAuth, requireDb, asyncRoute(async (req, res) => {
   const limit = Math.min(Math.max(Number(req.query.limit) || 30, 1), 100);
   const { rows } = await pool.query(`
     SELECT p.id,p.body,p.created_at,u.id AS user_id,u.name,u.email,
-      COUNT(DISTINCT l.user_id)::int AS likes, COUNT(DISTINCT c.id)::int AS comments
+      COUNT(DISTINCT l.user_id)::int AS likes, COUNT(DISTINCT c.id)::int AS comments,
+      CASE WHEN $2::bigint IS NULL THEN false ELSE EXISTS(SELECT 1 FROM post_likes mine WHERE mine.post_id=p.id AND mine.user_id=$2) END AS liked_by_me
     FROM posts p JOIN users u ON u.id=p.user_id
     LEFT JOIN post_likes l ON l.post_id=p.id LEFT JOIN comments c ON c.post_id=p.id
-    GROUP BY p.id,u.id ORDER BY p.created_at DESC LIMIT $1`, [limit]);
+    GROUP BY p.id,u.id ORDER BY p.created_at DESC LIMIT $1`, [limit, req.user?.sub || null]);
   res.json({ posts: rows });
 }));
 
@@ -185,8 +191,10 @@ app.post('/api/posts/:id/comments', requireAuth, requireDb, asyncRoute(async (re
   res.status(201).json({ comment: rows[0] });
 }));
 
-app.get('/api/communities', requireDb, asyncRoute(async (_req, res) => {
-  const { rows } = await pool.query('SELECT c.id,c.name,c.description,COUNT(cm.user_id)::int AS members FROM communities c LEFT JOIN community_members cm ON cm.community_id=c.id GROUP BY c.id ORDER BY c.name');
+app.get('/api/communities', optionalAuth, requireDb, asyncRoute(async (req, res) => {
+  const { rows } = await pool.query(`SELECT c.id,c.name,c.description,COUNT(cm.user_id)::int AS members,
+    CASE WHEN $1::bigint IS NULL THEN false ELSE EXISTS(SELECT 1 FROM community_members mine WHERE mine.community_id=c.id AND mine.user_id=$1) END AS joined_by_me
+    FROM communities c LEFT JOIN community_members cm ON cm.community_id=c.id GROUP BY c.id ORDER BY c.name`, [req.user?.sub || null]);
   res.json({ communities: rows });
 }));
 app.post('/api/communities/:id/join', requireAuth, requireDb, asyncRoute(async (req, res) => {
