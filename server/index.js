@@ -38,7 +38,7 @@ const requireDb = (req, res, next) => {
   next();
 };
 const optionalAuth = (req, res, next) => {
-  const token = req.headers.authorization?.replace(/^Bearer\\s+/i, '');
+  const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
   if (token && JWT_SECRET) { try { req.user = jwt.verify(token, JWT_SECRET); } catch { /* Public reads remain available for expired sessions. */ } }
   next();
 };
