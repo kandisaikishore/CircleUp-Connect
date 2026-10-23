@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it, within } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import App from './App';
 
 beforeEach(() => {
@@ -60,7 +60,7 @@ describe('CircleUp Connect core interactions', () => {
   it('shows the saved posts view', () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: /^saved$/i }));
-    expect(screen.getByText(/your little collection/i)).toBeTruthy();
+    expect(screen.getByRole('heading', { name: /your little collection/i })).toBeTruthy();
     expect(screen.getByText(/weekend challenge/i)).toBeTruthy();
   });
 });
