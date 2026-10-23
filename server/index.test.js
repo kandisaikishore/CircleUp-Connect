@@ -61,6 +61,21 @@ describe('CircleUp API configuration smoke tests', () => {
     expect(body.missingConfiguration).toContain('GEMINI_API_KEY or OPENAI_API_KEY');
   });
 
+
+  it('allows the configured Vite origin through a CORS preflight', async () => {
+    const response = await fetch(baseUrl + '/api/posts', {
+      method: 'OPTIONS',
+      headers: {
+        Origin: 'http://localhost:5173',
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'content-type,authorization'
+      }
+    });
+    expect(response.status).toBe(204);
+    expect(response.headers.get('access-control-allow-origin')).toBe('http://localhost:5173');
+    expect(response.headers.get('access-control-allow-methods')).toMatch(/POST/);
+  });
+
   it('returns a clear service-unavailable response when the database is absent', async () => {
     const response = await fetch(baseUrl + '/api/posts');
     expect(response.status).toBe(503);
