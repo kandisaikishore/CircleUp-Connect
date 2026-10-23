@@ -21,7 +21,7 @@
 | Browser/E2E | Home/feed, AI launcher, discover search, post composer, responsive overflow | Existing Playwright tests; execution pending |
 | Authentication/social API integration | PostgreSQL-backed flows and authenticated persistence | Not end-to-end verified; database configuration required |
 | Cross-browser | Chromium, Firefox, WebKit, Pixel 7 emulation | Configured in Playwright; execution pending |
-| CORS | Server reads `CLIENT_ORIGIN`; Vite proxies `/api` and `/socket.io` locally | Configuration inspected; live browser/API CORS test pending |
+| CORS | Server reads `CLIENT_ORIGIN`; Vite proxies `/api` and `/socket.io` locally | Configuration inspected; CORS preflight test added; execution pending |
 | Dark/light mode | No complete theme toggle verification found in the current tests | Not verified |
 
 ## Run locally
