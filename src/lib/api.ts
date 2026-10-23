@@ -54,6 +54,23 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   return payload as T;
 }
 
+export interface AuthUser {
+  id: number | string;
+  name: string;
+  email: string;
+}
+
+export const authApi = {
+  login: (email: string, password: string) =>
+    apiRequest<{ user: AuthUser; token: string }>('/auth/login', {
+      method: 'POST', body: JSON.stringify({ email, password })
+    }),
+  register: (name: string, email: string, password: string) =>
+    apiRequest<{ user: AuthUser; token: string }>('/auth/register', {
+      method: 'POST', body: JSON.stringify({ name, email, password })
+    })
+};
+
 export interface ApiPost {
   id: number | string;
   body: string;
@@ -63,6 +80,7 @@ export interface ApiPost {
   email?: string;
   likes: number;
   comments: number;
+  liked_by_me?: boolean;
 }
 
 export interface ApiComment {
@@ -79,6 +97,7 @@ export interface ApiCommunity {
   name: string;
   description: string;
   members: number;
+  joined_by_me?: boolean;
 }
 
 export const postsApi = {
