@@ -43,7 +43,7 @@ const requireDb = (req, res, next) => {
 };
 const requireAuth = (req, res, next) => {
   if (!JWT_SECRET) return res.status(503).json({ error: 'Authentication is not configured. Set JWT_SECRET.' });
-  const token = req.headers.authorization?.replace(/^Bearer\\s+/i, '');
+  const token = req.headers.authorization?.replace(/^Bearer\s+/i, '');
   if (!token) return res.status(401).json({ error: 'Sign in to continue.' });
   try { req.user = jwt.verify(token, JWT_SECRET); next(); }
   catch { return res.status(401).json({ error: 'Session expired. Please sign in again.' }); }
@@ -128,7 +128,7 @@ app.post('/api/auth/register', requireDb, (req, res, next) => JWT_SECRET ? next(
   const email = String(req.body.email || '').trim().toLowerCase();
   const password = String(req.body.password || '');
   if (name.length < 2 || name.length > 80) return res.status(400).json({ error: 'Name must be 2–80 characters.' });
-  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || email.length > 254) return res.status(400).json({ error: 'Enter a valid email address.' });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) return res.status(400).json({ error: 'Enter a valid email address.' });
   if (password.length < 10 || password.length > 128) return res.status(400).json({ error: 'Password must be 10–128 characters.' });
   const passwordHash = await bcrypt.hash(password, 12);
   try {
