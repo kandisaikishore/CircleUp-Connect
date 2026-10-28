@@ -22,10 +22,7 @@ describe('CircleUp Connect core interactions', () => {
     fireEvent.click(screen.getByRole('button', { name: /create post/i }));
     const textarea = screen.getByPlaceholderText(/what’s on your mind/i);
     fireEvent.change(textarea, { target: { value: 'Regression test post from CircleUp.' } });
-    const composer = textarea.closest('[role="dialog"]') as HTMLElement | null;
-    fireEvent.click(composer
-      ? within(composer).getByRole('button', { name: /^share post$/i })
-      : screen.getAllByRole('button', { name: /^share post$/i }).slice(-1)[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: /^share post$/i }).slice(-1)[0]);
     expect(screen.getByText('Regression test post from CircleUp.')).toBeTruthy();
     expect(JSON.parse(localStorage.getItem('circleup-posts') || '[]')[0].text).toBe('Regression test post from CircleUp.');
   });
