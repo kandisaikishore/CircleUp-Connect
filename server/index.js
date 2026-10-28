@@ -17,7 +17,11 @@ const io = new SocketServer(server, {
 });
 const pool = process.env.DATABASE_URL ? new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  max: Number(process.env.PG_POOL_MAX || 10),
+  connectionTimeoutMillis: Number(process.env.PG_CONNECTION_TIMEOUT_MS || 5000),
+  idleTimeoutMillis: Number(process.env.PG_IDLE_TIMEOUT_MS || 30000),
+  allowExitOnIdle: false
 }) : null;
 const PORT = Number(process.env.PORT || 10000);
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -95,6 +99,16 @@ async function initializeDatabase() {
     ('Creative Corner', 'A friendly home for designers, makers, and curious minds.')
     ON CONFLICT(name) DO NOTHING`);
 }
+
+app.get('/api/health/live', (_req, res) => {
+  res.status(200).json({ status: 'ok', service: 'circleup-connect-api' });
+});
+
+app.get('/api/health/ready', asyncRoute(async (_req, res) => {
+  if (!pool) return res.status(503).json({ status: 'not_ready', database: 'not_configured' });
+  await pool.query('SELECT 1');
+  res.status(200).json({ status: 'ready', database: 'connected' });
+}));
 
 app.get('/api/health', asyncRoute(async (_req, res) => {
   let database = 'not_configured';
@@ -228,7 +242,7 @@ app.post('/api/ai/chat', asyncRoute(async (req, res) => {
   const historyMessages = history.filter(m => ['user','assistant'].includes(m?.role) && typeof m.content === 'string')
     .map(m => ({ role: m.role, content: m.content.slice(0, 4000) }));
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 25_000);
+  const timeout = setTimeout(() => controller.abort(), Number(process.env.AI_TIMEOUT_MS || 25_000));
   try {
     if (process.env.GEMINI_API_KEY) {
       const contents = [

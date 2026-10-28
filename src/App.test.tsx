@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import App from './App';
 
 beforeEach(() => {
@@ -22,7 +22,7 @@ describe('CircleUp Connect core interactions', () => {
     fireEvent.click(screen.getByRole('button', { name: /create post/i }));
     const textarea = screen.getByPlaceholderText(/what’s on your mind/i);
     fireEvent.change(textarea, { target: { value: 'Regression test post from CircleUp.' } });
-    fireEvent.click(screen.getByRole('button', { name: /share post/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: /^share post$/i }).slice(-1)[0]);
     expect(screen.getByText('Regression test post from CircleUp.')).toBeTruthy();
     expect(JSON.parse(localStorage.getItem('circleup-posts') || '[]')[0].text).toBe('Regression test post from CircleUp.');
   });
@@ -57,8 +57,8 @@ describe('CircleUp Connect core interactions', () => {
 
   it('shows the saved posts view', () => {
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /saved posts/i }));
-    expect(screen.getByText(/your little collection/i)).toBeTruthy();
+    fireEvent.click(screen.getAllByRole('button', { name: /^saved$/i })[0]);
+    expect(screen.getAllByRole('heading', { name: /your little collection/i }).length).toBeGreaterThan(0);
     expect(screen.getByText(/weekend challenge/i)).toBeTruthy();
   });
 });
