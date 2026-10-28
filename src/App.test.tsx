@@ -19,10 +19,12 @@ describe('CircleUp Connect core interactions', () => {
 
   it('opens the composer and publishes a non-empty post', () => {
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /create post/i }));
-    const textarea = screen.getByPlaceholderText(/what’s on your mind/i);
+    fireEvent.click(screen.getByRole('button', { name: /share an update/i }));
+    const textarea = screen.getByRole('textbox', { name: /write a new post/i });
     fireEvent.change(textarea, { target: { value: 'Regression test post from CircleUp.' } });
-    fireEvent.click(screen.getByRole('button', { name: /^share post$/i }));
+    const dialog = textarea.closest('.composer-modal');
+    expect(dialog).toBeTruthy();
+    fireEvent.click(within(dialog as HTMLElement).getByRole('button', { name: /^share post$/i }));
     expect(screen.getByText('Regression test post from CircleUp.')).toBeTruthy();
     expect(JSON.parse(localStorage.getItem('circleup-posts') || '[]')[0].text).toBe('Regression test post from CircleUp.');
   });
@@ -57,12 +59,8 @@ describe('CircleUp Connect core interactions', () => {
 
   it('shows the saved posts view', () => {
     render(<App />);
-    // Repeated post cards intentionally expose repeated "saved posts" controls.
-    // Target the primary navigation control instead of using an ambiguous singular query.
-    const savedPostsNavigation = screen.getAllByRole('button', { name: /saved posts/i })
-      .find((button) => button.classList.contains('nav-link'));
-    expect(savedPostsNavigation).toBeTruthy();
-    fireEvent.click(savedPostsNavigation!);
+    // The sidebar item is labelled "Saved"; post cards have repeated save action buttons.
+    fireEvent.click(screen.getByRole('button', { name: /^saved$/i }));
     expect(screen.getByText(/your little collection/i)).toBeTruthy();
     expect(screen.getByText(/weekend challenge/i)).toBeTruthy();
   });
