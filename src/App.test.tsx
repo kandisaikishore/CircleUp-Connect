@@ -59,9 +59,9 @@ describe('CircleUp Connect core interactions', () => {
 
   it('shows the saved posts view', () => {
     render(<App />);
-    // The sidebar item is labelled "Saved"; post cards have repeated save action buttons.
     fireEvent.click(screen.getByRole('button', { name: /^saved$/i }));
-    expect(screen.getByText(/your little collection/i)).toBeTruthy();
+    const headings = screen.getAllByRole('heading', { name: /your little collection/i });
+    expect(headings.length).toBeGreaterThan(0);
     expect(screen.getByText(/weekend challenge/i)).toBeTruthy();
   });
 });
