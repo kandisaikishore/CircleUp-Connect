@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import App from './App';
 
 beforeEach(() => {
@@ -19,20 +19,18 @@ describe('CircleUp Connect core interactions', () => {
 
   it('opens the composer and publishes a non-empty post', () => {
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /create post/i }));
-    const textarea = screen.getByPlaceholderText(/what’s on your mind/i);
+    fireEvent.click(screen.getByRole('button', { name: /create a post/i }));
+    const textarea = screen.getByRole('textbox', { name: /write a new post/i });
     fireEvent.change(textarea, { target: { value: 'Regression test post from CircleUp.' } });
-    fireEvent.click(screen.getByRole('button', { name: /share post/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^share post$/i }));
     expect(screen.getByText('Regression test post from CircleUp.')).toBeTruthy();
     expect(JSON.parse(localStorage.getItem('circleup-posts') || '[]')[0].text).toBe('Regression test post from CircleUp.');
   });
 
   it('toggles a like and persists the changed count', () => {
     render(<App />);
-    const likeCount = screen.getByText('128');
-    const likeButton = likeCount.closest('button');
-    expect(likeButton).not.toBeNull();
-    fireEvent.click(likeButton!);
+    const likeButton = screen.getByRole('button', { name: /like post/i });
+    fireEvent.click(likeButton);
     expect(screen.getByText('129')).toBeTruthy();
     expect(JSON.parse(localStorage.getItem('circleup-posts') || '[]').find((post: {id:number}) => post.id === 1).liked).toBe(true);
   });
@@ -40,7 +38,7 @@ describe('CircleUp Connect core interactions', () => {
   it('filters discover people using the search field', () => {
     render(<App />);
     fireEvent.click(screen.getAllByRole('button', { name: /^discover$/i })[0]);
-    fireEvent.change(screen.getByPlaceholderText(/search people, topics/i), { target: { value: 'Machine Learning' } });
+    fireEvent.change(screen.getByRole('textbox', { name: /search people, interests, or circles/i }), { target: { value: 'Machine Learning' } });
     expect(screen.getByText('Meera Kapoor')).toBeTruthy();
     expect(screen.queryByText('Vikram Patel')).toBeNull();
   });
@@ -48,16 +46,16 @@ describe('CircleUp Connect core interactions', () => {
   it('joins a community and saves the selection locally', () => {
     render(<App />);
     fireEvent.click(screen.getAllByRole('button', { name: /^communities$/i })[0]);
-    const joinButtons = screen.getAllByRole('button', { name: /join circle/i });
-    expect(joinButtons.length).toBeGreaterThan(0);
-    fireEvent.click(joinButtons[0]);
+    const communityCard = screen.getByText('Frontend Friends').closest('.circle-card');
+    expect(communityCard).not.toBeNull();
+    fireEvent.click(within(communityCard as HTMLElement).getByRole('button', { name: /join circle/i }));
     expect(JSON.parse(localStorage.getItem('circleup-joined') || '[]')).toContain('Frontend Friends');
-    expect(screen.getAllByRole('button', { name: /joined/i }).length).toBeGreaterThan(0);
+    expect(within(communityCard as HTMLElement).getByRole('button', { name: /joined/i })).toBeTruthy();
   });
 
   it('shows the saved posts view', () => {
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /saved posts/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: /^saved$/i })[0]);
     expect(screen.getByText(/your little collection/i)).toBeTruthy();
     expect(screen.getByText(/weekend challenge/i)).toBeTruthy();
   });
