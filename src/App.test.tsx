@@ -20,7 +20,7 @@ describe('CircleUp Connect core interactions', () => {
   it('opens the composer and publishes a non-empty post', () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: /create a post/i }));
-    const textarea = screen.getByPlaceholderText(/what’s on your mind/i);
+    const textarea = screen.getByRole('textbox', { name: /write a new post/i });
     fireEvent.change(textarea, { target: { value: 'Regression test post from CircleUp.' } });
     const composer = textarea.closest('.composer-modal');
     expect(composer).not.toBeNull();
