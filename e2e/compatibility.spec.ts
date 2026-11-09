@@ -18,15 +18,16 @@ test('home feed and AI assistant render without browser errors', async ({ page }
 test('discover search works at the current viewport size', async ({ page }) => {
   await page.getByRole('button', { name: 'Discover', exact: true }).last().click();
   await expect(page.getByRole('heading', { name: 'Find your people' })).toBeVisible();
-  await page.getByRole('textbox', { name: /search people and topics/i }).fill('Machine Learning');
+  await page.getByRole('textbox', { name: /search people, interests, or circles/i }).fill('Machine Learning');
   await expect(page.getByText('Meera Kapoor')).toBeVisible();
   await expect(page.getByText('Vikram Patel')).toHaveCount(0);
 });
 
 test('post composer supports creating a post', async ({ page }) => {
   await page.getByRole('button', { name: /create post/i }).first().click();
-  await page.getByPlaceholder(/what’s on your mind/i).fill('Browser compatibility regression post');
-  await page.getByRole('button', { name: /share post/i }).click();
+  const composer = page.locator('.composer-modal');
+  await composer.getByPlaceholder(/what’s on your mind/i).fill('Browser compatibility regression post');
+  await composer.getByRole('button', { name: /^share post$/i }).click();
   await expect(page.getByText('Browser compatibility regression post')).toBeVisible();
 });
 
