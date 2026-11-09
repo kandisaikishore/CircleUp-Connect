@@ -22,16 +22,23 @@ describe('CircleUp Connect core interactions', () => {
     fireEvent.click(screen.getByRole('button', { name: /create a post/i }));
     const textarea = screen.getByRole('textbox', { name: /write a new post/i });
     fireEvent.change(textarea, { target: { value: 'Regression test post from CircleUp.' } });
-    fireEvent.click(screen.getByRole('button', { name: /^share post$/i }));
+
+    const composer = document.querySelector('.composer-modal');
+    expect(composer).not.toBeNull();
+    fireEvent.click(within(composer as HTMLElement).getByRole('button', { name: /^share post$/i }));
+
     expect(screen.getByText('Regression test post from CircleUp.')).toBeTruthy();
     expect(JSON.parse(localStorage.getItem('circleup-posts') || '[]')[0].text).toBe('Regression test post from CircleUp.');
   });
 
   it('toggles a like and persists the changed count', () => {
     render(<App />);
-    const likeButton = screen.getByRole('button', { name: /like post/i });
+    const firstPost = document.querySelector('#post-1');
+    expect(firstPost).not.toBeNull();
+    const likeButton = within(firstPost as HTMLElement).getByRole('button', { name: /^like post$/i });
+
     fireEvent.click(likeButton);
-    expect(screen.getByText('129')).toBeTruthy();
+    expect(within(firstPost as HTMLElement).getByText('129')).toBeTruthy();
     expect(JSON.parse(localStorage.getItem('circleup-posts') || '[]').find((post: {id:number}) => post.id === 1).liked).toBe(true);
   });
 
@@ -46,8 +53,11 @@ describe('CircleUp Connect core interactions', () => {
   it('joins a community and saves the selection locally', () => {
     render(<App />);
     fireEvent.click(screen.getAllByRole('button', { name: /^communities$/i })[0]);
-    const communityCard = screen.getByText('Frontend Friends').closest('.circle-card');
-    expect(communityCard).not.toBeNull();
+
+    const communityCard = Array.from(document.querySelectorAll('.community-grid .circle-card'))
+      .find((card) => card.textContent?.includes('Frontend Friends'));
+    expect(communityCard).toBeDefined();
+
     fireEvent.click(within(communityCard as HTMLElement).getByRole('button', { name: /join circle/i }));
     expect(JSON.parse(localStorage.getItem('circleup-joined') || '[]')).toContain('Frontend Friends');
     expect(within(communityCard as HTMLElement).getByRole('button', { name: /joined/i })).toBeTruthy();
@@ -56,7 +66,7 @@ describe('CircleUp Connect core interactions', () => {
   it('shows the saved posts view', () => {
     render(<App />);
     fireEvent.click(screen.getAllByRole('button', { name: /^saved$/i })[0]);
-    expect(screen.getByText(/your little collection/i)).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 1, name: /your little collection/i })).toBeTruthy();
     expect(screen.getByText(/weekend challenge/i)).toBeTruthy();
   });
 });
