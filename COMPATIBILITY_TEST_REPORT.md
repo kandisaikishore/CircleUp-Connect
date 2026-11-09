@@ -1,14 +1,31 @@
 # CircleUp Connect Compatibility Test Report
 
-## Scope
-Reviewed the current responsive CSS and React navigation behavior for desktop, tablet, and mobile viewports.
+## Automated coverage
 
-## Findings
-- Desktop layout uses a fixed sidebar and a two-column feed/dashboard layout.
-- Tablet layout collapses the sidebar into an off-canvas drawer and uses a single-column dashboard.
-- Mobile layout stacks cards and grids, provides a bottom navigation bar, and adapts the composer modal.
-- Defect found: the mobile search input is `display: none` by default and relies on `:focus-within` to reveal itself. Since the input is hidden, a tap on the search icon may not focus it reliably on touch devices.
-- The mobile navigation controls do not have explicit accessible names in the current markup.
+The GitHub Actions CI workflow runs the React application and Playwright compatibility suite against:
+
+- Chromium desktop
+- Firefox desktop
+- WebKit (Safari engine) desktop
+- Chromium mobile emulation (Pixel 7 profile)
+
+The workflow also runs the Java backend verification, Node regression tests, TypeScript checks, and the Vite production build.
+
+## Latest verification
+
+Commit: `6c592582bfad7caf2d6028fb4391c75431461842`
+
+- Java backend tests: passed
+- Node regression tests: passed
+- TypeScript check and production build: passed
+- Playwright cross-browser and responsive suite: passed
+
+## Defects corrected
+
+- Unit tests now scope like, share, community, and saved-view assertions to the intended component instead of matching repeated controls or navigation text globally.
+- The Playwright discover test now uses the actual accessible search label, `Search people, interests, or circles`.
+- The Playwright composer test scopes the `Share post` action to the composer modal so feed-level share controls cannot cause strict-mode ambiguity.
 
 ## Verification limits
-The existing GitHub Actions pipeline passed the unit/regression tests and production build. This environment does not provide a real browser/device farm, so Safari/Firefox/Chrome cross-browser and physical-device checks have not been executed. The findings above are code-level compatibility review, not a claim of full cross-browser certification.
+
+The browser suite uses Playwright browser engines and Pixel 7 device emulation in GitHub-hosted CI. It is not a physical-device farm and does not certify every browser version, OS release, or hardware configuration.
