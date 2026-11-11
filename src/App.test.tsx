@@ -32,9 +32,11 @@ describe('CircleUp Connect core interactions', () => {
 
   it('toggles a like and persists the changed count', () => {
     render(<App />);
-    const likeButton = screen.getByRole('button', { name: /like post/i });
+    const firstPost = document.querySelector('#post-1');
+    expect(firstPost).not.toBeNull();
+    const likeButton = within(firstPost as HTMLElement).getByRole('button', { name: /^like post$/i });
     fireEvent.click(likeButton);
-    expect(screen.getByText('129')).toBeTruthy();
+    expect(within(firstPost as HTMLElement).getByText('129')).toBeTruthy();
     expect(JSON.parse(localStorage.getItem('circleup-posts') || '[]').find((post: {id:number}) => post.id === 1).liked).toBe(true);
   });
 
