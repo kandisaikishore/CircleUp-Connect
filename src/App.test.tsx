@@ -51,7 +51,7 @@ describe('CircleUp Connect core interactions', () => {
   it('joins a community and saves the selection locally', () => {
     render(<App />);
     fireEvent.click(screen.getAllByRole('button', { name: /^communities$/i })[0]);
-    const communityHeading = screen.getByRole('heading', { name: 'Frontend Friends', exact: true });
+    const communityHeading = screen.getByRole('heading', { name: /^Frontend Friends$/i });
     const communityCard = communityHeading.closest('.circle-card');
     expect(communityCard).not.toBeNull();
     fireEvent.click(within(communityCard as HTMLElement).getByRole('button', { name: /join circle/i }));
@@ -62,7 +62,7 @@ describe('CircleUp Connect core interactions', () => {
   it('shows the saved posts view', () => {
     render(<App />);
     fireEvent.click(screen.getAllByRole('button', { name: /^saved$/i })[0]);
-    expect(screen.getByRole('heading', { level: 1, name: 'Your little collection', exact: true })).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 1, name: /^Your little collection$/i })).toBeTruthy();
     expect(screen.getByText(/weekend challenge/i)).toBeTruthy();
   });
 });
